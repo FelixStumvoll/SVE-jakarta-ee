@@ -1,9 +1,9 @@
 package com.urlshortener.core.services.namegenerator.impl
 
 import com.urlshortener.core.services.namegenerator.NameGenerator
-import org.springframework.stereotype.Service
+import javax.enterprise.context.ApplicationScoped
 
-@Service
+@ApplicationScoped
 class NameGeneratorImpl : NameGenerator {
     private final val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 

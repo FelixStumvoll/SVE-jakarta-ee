@@ -1,6 +1,5 @@
 package com.urlshortener.core.services.shorturl.impl
 
-import com.urlshortener.ShortUrlConfiguration
 import com.urlshortener.core.dtos.CreateShortUrlDto
 import com.urlshortener.core.dtos.ShortUrlDto
 import com.urlshortener.core.dtos.UpdateShortUrlDto
@@ -10,14 +9,17 @@ import com.urlshortener.core.services.namegenerator.NameGenerator
 import com.urlshortener.core.services.shorturl.ShortUrlService
 import com.urlshortener.dal.entities.ShortUrl
 import com.urlshortener.dal.repositories.ShortUrlRepository
-import org.springframework.stereotype.Service
+import org.eclipse.microprofile.config.inject.ConfigProperty
+import javax.enterprise.context.RequestScoped
+import javax.inject.Inject
+import javax.transaction.Transactional
 
-
-@Service
+@RequestScoped
+@Transactional
 class ShortUrlServiceImpl(
-    private val shortUrlRepository: ShortUrlRepository,
-    private val nameGenerator: NameGenerator,
-    private val shortUrlConfiguration: ShortUrlConfiguration
+    @Inject private val shortUrlRepository: ShortUrlRepository,
+    @Inject private val nameGenerator: NameGenerator,
+    @ConfigProperty(name = "urlshortener.generatedNameLength") private var generatedNameLength: Int
 ) : ShortUrlService {
     override fun findByShortname(shortName: String): ShortUrlDto =
         shortUrlRepository.findByShortName(shortName)?.toDto() ?: throw EntityNotFoundException(
@@ -47,7 +49,7 @@ class ShortUrlServiceImpl(
             persistedEntity.url = it
         }
 
-        return shortUrlRepository.save(persistedEntity).toDto()
+        return shortUrlRepository.merge(persistedEntity).toDto()
     }
 
     override fun delete(id: Long, userId: String) =
@@ -56,10 +58,10 @@ class ShortUrlServiceImpl(
         } else throw EntityNotFoundException(notFoundByIdMessage(id))
 
     override fun create(createShortUrlDto: CreateShortUrlDto): ShortUrlDto =
-        if (createShortUrlDto.shortName != null && shortUrlRepository.countByShortName(createShortUrlDto.shortName) != 0)
+        if (createShortUrlDto.shortName != null && shortUrlRepository.countByShortName(createShortUrlDto.shortName) != 0L)
             throw EntityModificationException(alreadyExistsMessage)
         else
-            shortUrlRepository.save(
+            shortUrlRepository.merge(
                 ShortUrl(
                     createShortUrlDto.url,
                     createShortUrlDto.shortName ?: getUniqueShortName(),
@@ -71,10 +73,10 @@ class ShortUrlServiceImpl(
 
     private fun getUniqueShortName(): String {
         val nameGenerator = nameGenerator::generateName
-        var generatedName = nameGenerator(shortUrlConfiguration.generatedNameLength)
+        var generatedName = nameGenerator(generatedNameLength)
 
-        while (shortUrlRepository.countByShortName(generatedName) != 0) {
-            generatedName = nameGenerator(shortUrlConfiguration.generatedNameLength)
+        while (shortUrlRepository.countByShortName(generatedName) != 0L) {
+            generatedName = nameGenerator(generatedNameLength)
         }
 
         return generatedName

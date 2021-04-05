@@ -1,84 +1,68 @@
 package com.urlshortener.api.controllers
 
-import com.urlshortener.ShortUrlConfiguration
-import com.urlshortener.api.controllers.util.getUserIdFromToken
 import com.urlshortener.api.dtos.ApiCreateShortUrlDto
 import com.urlshortener.api.dtos.ApiUpdateShortUrlDto
 import com.urlshortener.core.dtos.CreateShortUrlDto
 import com.urlshortener.core.dtos.ShortUrlDto
 import com.urlshortener.core.dtos.UpdateShortUrlDto
 import com.urlshortener.core.services.shorturl.ShortUrlService
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.http.ResponseEntity.created
-import org.springframework.http.ResponseEntity.ok
-import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.*
-import org.springframework.web.util.UriComponentsBuilder
+import javax.inject.Inject
+import javax.validation.Valid
+import javax.ws.rs.*
+import javax.ws.rs.core.Response
 
-const val AuthHeader = "Authentication"
-
-@RestController
-@Validated
-@RequestMapping("/short-url")
+@Path("/short-url")
 class ShortUrlController(
-    private val shortUrlService: ShortUrlService,
-    private val config: ShortUrlConfiguration
+    @Inject private val shortUrlService: ShortUrlService,
 ) {
-    @GetMapping
-    fun getAll(@RequestHeader(AuthHeader) authHeader: String): List<ShortUrlDto> =
-        shortUrlService.findAll(getUserIdFromToken(authHeader, config.authSecret))
+    @GET
+    fun getAll(): List<ShortUrlDto> =
+        shortUrlService.findAll("")
 
-    @GetMapping("/{id}")
+    @GET
+    @Path("/{id}")
     fun getById(
-        @PathVariable id: Long,
-        @RequestHeader(AuthHeader) userId: String
-    ): ResponseEntity<ShortUrlDto> =
-        ok(shortUrlService.findById(id, getUserIdFromToken(userId, config.authSecret)))
+        @PathParam("id") id: Long,
+    ): ShortUrlDto =
+        shortUrlService.findById(id, "")
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
+    @POST
     fun create(
-        @RequestBody createShortUrlDto: ApiCreateShortUrlDto,
-        @RequestHeader(AuthHeader) userId: String,
-        uriComponentsBuilder: UriComponentsBuilder
-    ): ResponseEntity<ShortUrlDto> =
+        @Valid createShortUrlDto: ApiCreateShortUrlDto,
+    ): Response =
         shortUrlService.create(
             CreateShortUrlDto(
                 createShortUrlDto.shortName,
                 createShortUrlDto.url,
-                getUserIdFromToken(userId, config.authSecret)
+                "" //Todo implement jwt
             )
-        )
-            .let {
-                created(uriComponentsBuilder.path("/short-url/{id}").build(it.id)).body(it)
-            }
+        ).let {
+            Response.ok(it).build() //TODO location header
+        }
 
-    @PutMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
+    @PUT
+    @Path("/{id}")
     fun update(
-        @RequestBody updateDto: ApiUpdateShortUrlDto,
-        @PathVariable id: Long,
-        @RequestHeader(AuthHeader) userId: String
-    ): ResponseEntity<Unit> {
+        updateDto: ApiUpdateShortUrlDto,
+        @PathParam("id") id: Long,
+    ): Response =
         shortUrlService.update(
             UpdateShortUrlDto(
                 updateDto.shortName,
                 updateDto.url,
                 id,
-                getUserIdFromToken(userId, config.authSecret)
+                "" //Todo implement jwt
             )
-        )
-        return ok().build()
-    }
+        ).let {
+            Response.ok(it).build()
+        }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
+    @DELETE
+    @Path("/{id}")
     fun delete(
-        @PathVariable id: Long,
-        @RequestHeader(AuthHeader) userId: String
-    ): ResponseEntity<Unit> {
-        shortUrlService.delete(id, getUserIdFromToken(userId, config.authSecret))
-        return ok().build()
+        @PathParam("id") id: Long,
+    ): Response {
+        shortUrlService.delete(id, "")
+        return Response.ok().build()
     }
 }

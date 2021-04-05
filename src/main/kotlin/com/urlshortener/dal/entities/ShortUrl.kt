@@ -1,13 +1,12 @@
 package com.urlshortener.dal.entities
 
 import org.hibernate.validator.constraints.URL
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.Id
+import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
 @Entity
+@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["shortName"])])
 data class ShortUrl(
     @field:NotBlank
     @field:URL

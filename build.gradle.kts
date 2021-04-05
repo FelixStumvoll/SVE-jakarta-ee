@@ -1,50 +1,61 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    id("org.springframework.boot") version Versions.springVersion
-    kotlin("jvm") version Versions.kotlinVersion
-    kotlin("plugin.spring") version Versions.kotlinVersion
-    kotlin("plugin.jpa") version Versions.kotlinVersion
-    kotlin("kapt") version Versions.kotlinVersion
+    kotlin("jvm") version "1.4.31"
+    kotlin("plugin.allopen") version "1.4.31"
+    kotlin("plugin.noarg") version "1.4.31"
+    id("io.quarkus")
 }
 
-group = "com.urlshortener"
-version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_11
-
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
+val quarkusPlatformGroupId: String by project
+val quarkusPlatformArtifactId: String by project
+val quarkusPlatformVersion: String by project
 
 dependencies {
-    //spring
-    implementation(platform("org.springframework.boot:spring-boot-dependencies:${Versions.springVersion}"))
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-aop")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    kapt("org.springframework.boot:spring-boot-configuration-processor:${Versions.springVersion}")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    //kotlin
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
+    implementation("io.quarkus:quarkus-hibernate-orm")
+    implementation("io.quarkus:quarkus-jdbc-h2")
+    implementation("io.quarkus:quarkus-hibernate-validator")
+    implementation("io.quarkus:quarkus-jdbc-mssql")
+    implementation("io.quarkus:quarkus-resteasy-jsonb")
+    implementation("io.quarkus:quarkus-kotlin")
+    implementation("io.quarkus:quarkus-resteasy")
+    implementation("io.quarkus:quarkus-resteasy-jackson")
+    implementation("io.quarkus:quarkus-smallrye-jwt")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    //db
-    implementation("com.h2database:h2")
-    runtimeOnly("com.microsoft.sqlserver:mssql-jdbc")
-    implementation("org.connectbot:jbcrypt:1.0.2")
-
+    implementation("io.quarkus:quarkus-arc")
+    testImplementation("io.quarkus:quarkus-junit5")
+    testImplementation("io.rest-assured:rest-assured")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "11"
-        useIR = true
-    }
+group = "com.urlshortener"
+version = "1.0.0-SNAPSHOT"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+allOpen {
+    annotation("javax.ws.rs.Path")
+    annotation("javax.enterprise.context.ApplicationScoped")
+    annotation("javax.enterprise.context.RequestScoped")
+    annotation("io.quarkus.test.junit.QuarkusTest")
+}
+
+noArg {
+    annotation("javax.persistence.Entity")
+    annotation("javax.ws.rs.Path")
+    annotation("javax.enterprise.context.ApplicationScoped")
+    annotation("javax.enterprise.context.RequestScoped")
+    annotation("io.quarkus.test.junit.QuarkusTest")
+    annotation("com.urlshortener.api.dtos.ApiDto")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
+    kotlinOptions.javaParameters = true
 }

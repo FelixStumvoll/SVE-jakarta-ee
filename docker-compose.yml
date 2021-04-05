@@ -1,19 +1,9 @@
 version: "3.8"
 
 services:
-  application:
-    build: .
-    environment:
-      DB_USER: $DB_USER
-      DB_PASSWORD: $DB_PASSWORD
-    ports:
-      - "8080:8080"
-    restart: always
-    depends_on:
-      - mssql
   mssql:
     image: mcr.microsoft.com/azure-sql-edge:latest
-    container_name: UrlShortenerDb
+    container_name: shortenerDB
     ports:
       - "1433:1433"
     restart: always

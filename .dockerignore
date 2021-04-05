@@ -1,9 +1,5 @@
-.idea
-.gradle
-build
-*.md
-docker-compose.yml
-.gitignore
-data
-gradlew
-gradlew.bat
+*
+!build/*-runner
+!build/*-runner.jar
+!build/lib/*
+!build/quarkus-app/*
