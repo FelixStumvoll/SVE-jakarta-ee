@@ -6,10 +6,13 @@ import com.urlshortener.core.dtos.CreateShortUrlDto
 import com.urlshortener.core.dtos.ShortUrlDto
 import com.urlshortener.core.dtos.UpdateShortUrlDto
 import com.urlshortener.core.services.shorturl.ShortUrlService
+import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
 import javax.validation.Valid
 import javax.ws.rs.*
+import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
+import javax.ws.rs.core.SecurityContext
 
 @Path("/short-url")
 class ShortUrlController(
@@ -27,14 +30,16 @@ class ShortUrlController(
         shortUrlService.findById(id, "")
 
     @POST
+    @RolesAllowed("user")
     fun create(
-        @Valid createShortUrlDto: ApiCreateShortUrlDto,
+            @Valid createShortUrlDto: ApiCreateShortUrlDto,
+            @Context securityContext: SecurityContext,
     ): Response =
         shortUrlService.create(
             CreateShortUrlDto(
                 createShortUrlDto.shortName,
                 createShortUrlDto.url,
-                "" //Todo implement jwt
+                securityContext.userPrincipal.name
             )
         ).let {
             Response.ok(it).build() //TODO location header
@@ -42,16 +47,18 @@ class ShortUrlController(
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed("user")
     fun update(
         updateDto: ApiUpdateShortUrlDto,
         @PathParam("id") id: Long,
+        @Context securityContext: SecurityContext,
     ): Response =
         shortUrlService.update(
             UpdateShortUrlDto(
                 updateDto.shortName,
                 updateDto.url,
                 id,
-                "" //Todo implement jwt
+                securityContext.userPrincipal.name
             )
         ).let {
             Response.ok(it).build()
