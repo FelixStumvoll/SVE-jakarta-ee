@@ -44,6 +44,7 @@ allOpen {
     annotation("javax.enterprise.context.ApplicationScoped")
     annotation("javax.enterprise.context.RequestScoped")
     annotation("io.quarkus.test.junit.QuarkusTest")
+    annotation("com.urlshortener.util.annotations.Open")
 }
 
 noArg {
@@ -52,7 +53,7 @@ noArg {
     annotation("javax.enterprise.context.ApplicationScoped")
     annotation("javax.enterprise.context.RequestScoped")
     annotation("io.quarkus.test.junit.QuarkusTest")
-    annotation("com.urlshortener.api.dtos.ApiDto")
+    annotation("com.urlshortener.util.annotations.NoArgs")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {

@@ -1,7 +1,7 @@
 package com.urlshortener.api
 
-class ErrorResponse<T>(vararg val errors: T) {
+class ErrorResponse(vararg val errors: String) {
     companion object {
-        inline fun <reified T> of(errors: List<T>) = ErrorResponse(*errors.toTypedArray())
+        fun of(errors: List<String>) = ErrorResponse(*errors.toTypedArray())
     }
 }

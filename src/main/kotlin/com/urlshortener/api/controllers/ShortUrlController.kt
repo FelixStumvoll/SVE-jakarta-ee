@@ -6,6 +6,7 @@ import com.urlshortener.core.dtos.CreateShortUrlDto
 import com.urlshortener.core.dtos.ShortUrlDto
 import com.urlshortener.core.dtos.UpdateShortUrlDto
 import com.urlshortener.core.services.shorturl.ShortUrlService
+import java.net.URI
 import javax.inject.Inject
 import javax.validation.Valid
 import javax.ws.rs.*
@@ -37,7 +38,7 @@ class ShortUrlController(
                 "" //Todo implement jwt
             )
         ).let {
-            Response.ok(it).build() //TODO location header
+            Response.created(URI("/short-url/${it.id}")).build()
         }
 
     @PUT

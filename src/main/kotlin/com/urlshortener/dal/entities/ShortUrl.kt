@@ -6,7 +6,7 @@ import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
 @Entity
-@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["shortName"])])
+@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["shortName"], name = "ShortNameUniqueConstraint")])
 data class ShortUrl(
     @field:NotBlank
     @field:URL

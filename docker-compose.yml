@@ -2,15 +2,15 @@ version: "3.8"
 
 services:
   mssql:
-    image: mcr.microsoft.com/azure-sql-edge:latest
+    image: mcr.microsoft.com/mssql/server:latest
     container_name: shortenerDB
     ports:
       - "1433:1433"
     restart: always
     volumes:
-      - mssqlserver:/var/opt/mssql
+      - shorturlDB:/var/opt/mssql
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: $DB_PASSWORD
 volumes:
-  mssqlserver:
+  shorturlDB:

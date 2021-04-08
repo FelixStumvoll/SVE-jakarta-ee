@@ -1,16 +1,15 @@
 package com.urlshortener.api.dtos
 
+import com.urlshortener.util.annotations.NoArgs
 import javax.validation.constraints.NotNull
 
-annotation class ApiDto
-
-@ApiDto
+@NoArgs
 data class ApiUpdateShortUrlDto(
     var shortName: String?,
     var url: String?
 )
 
-@ApiDto
+@NoArgs
 data class ApiCreateShortUrlDto(
     var shortName: String?,
     @field:NotNull

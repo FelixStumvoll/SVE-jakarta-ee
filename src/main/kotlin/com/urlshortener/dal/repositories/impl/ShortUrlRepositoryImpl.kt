@@ -10,14 +10,16 @@ import javax.persistence.PersistenceContext
 import java.lang.Long as JavaLong
 
 @RequestScoped
-
 class ShortUrlRepositoryImpl(@PersistenceContext private val em: EntityManager) : ShortUrlRepository {
     override fun merge(shortUrl: ShortUrl): ShortUrl = em.merge(shortUrl)
 
     override fun deleteById(id: Long) {
+        em.createQuery("delete from ShortUrl s where s.id = :id").run {
+            setParameter("id", id)
+            executeUpdate()
+        }
     }
 
-    //todo unique constraint????
     override fun countByShortName(shortName: String): Long =
         em.createQuery("select count(s) from ShortUrl s where s.shortName = :shortName", JavaLong::class.java).run {
             setParameter("shortName", shortName)
@@ -38,7 +40,7 @@ class ShortUrlRepositoryImpl(@PersistenceContext private val em: EntityManager) 
         }
 
     override fun existsByIdAndUserId(id: Long, userId: String): Boolean =
-        em.createQuery("select count(s) from ShortUrl s where s.id = :id and s.userId = :userid",JavaLong::class.java)
+        em.createQuery("select count(s) from ShortUrl s where s.id = :id and s.userId = :userid", JavaLong::class.java)
             .run {
                 setParameter("id", id)
                 setParameter("userid", userId)
