@@ -2,7 +2,7 @@ package com.urlshortener.api
 
 import com.urlshortener.core.exceptions.EntityModificationException
 import com.urlshortener.core.exceptions.EntityNotFoundException
-import io.quarkus.arc.ArcUndeclaredThrowableException
+import com.urlshortener.core.exceptions.ShortNameAlreadyExistsException
 import javax.validation.ConstraintViolationException
 import javax.ws.rs.core.Response
 import javax.ws.rs.ext.ExceptionMapper
@@ -28,8 +28,7 @@ class ConstraintViolationHandler : ExceptionMapper<ConstraintViolationException>
 }
 
 @Provider
-class ArcUndeclaredThrowableHandler : ExceptionMapper<ArcUndeclaredThrowableException> {
-    override fun toResponse(ex: ArcUndeclaredThrowableException): Response {
-        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build()
-    }
+class ShortNameAlreadyExistsHandler : ExceptionMapper<ShortNameAlreadyExistsException> {
+    override fun toResponse(ex: ShortNameAlreadyExistsException): Response =
+        Response.status(Response.Status.BAD_REQUEST).entity(ErrorResponse(ex.message!!)).build()
 }
