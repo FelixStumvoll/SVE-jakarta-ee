@@ -38,33 +38,7 @@ class ShortUrlServiceImpl(
     override fun findAll(userId: String): List<ShortUrlDto> =
         shortUrlRepository.findAllByUserId(userId).map { it.toDto() }
 
-    private fun getById(id: Long, userId: String): ShortUrl =
-        shortUrlRepository.findByIdAndUserId(id, userId) ?: throw EntityNotFoundException(
-            notFoundByIdMessage(
-                id
-            )
-        )
-
     override fun findById(id: Long, userId: String) = getById(id, userId).toDto()
-
-    private fun withShortNameConstraintHandler(
-        shortName: String?,
-        modificationType: String,
-        block: () -> ShortUrlDto
-    ): ShortUrlDto = try {
-        transaction.execute(block)
-    } catch (ex: ConstraintViolationException) {
-        throw ex
-    } catch (ex: Exception) {
-        if (shortName != null) {
-            val sqlException = ex.getException<SQLException>()
-            if (sqlException != null && sqlException.message?.contains(shortNameConstraint) == true) {
-                throw ShortNameAlreadyExistsException(shortName)
-            }
-        }
-
-        throw EntityModificationException("could not $modificationType short url")
-    }
 
     override fun update(entity: UpdateShortUrlDto): ShortUrlDto =
         withShortNameConstraintHandler(entity.shortName, "update") {
@@ -97,15 +71,40 @@ class ShortUrlServiceImpl(
             shortUrlRepository.deleteById(id)
         } else throw EntityNotFoundException(notFoundByIdMessage(id))
 
+    private inline fun withShortNameConstraintHandler(
+        shortName: String?,
+        modificationType: String,
+        block: () -> ShortUrlDto
+    ): ShortUrlDto = try {
+        transaction.execute(block)
+    } catch (ex: ConstraintViolationException) {
+        throw ex
+    } catch (ex: Exception) {
+        if (shortName != null) {
+            val sqlException = ex.getException<SQLException>()
+            if (sqlException != null && sqlException.message?.contains(shortNameConstraint) == true) {
+                throw ShortNameAlreadyExistsException(shortName)
+            }
+        }
+
+        throw EntityModificationException("could not $modificationType short url")
+    }
+
+    private fun getById(id: Long, userId: String): ShortUrl =
+        shortUrlRepository.findByIdAndUserId(id, userId) ?: throw EntityNotFoundException(
+            notFoundByIdMessage(
+                id
+            )
+        )
+
     private fun ShortUrl.toDto(): ShortUrlDto = ShortUrlDto(shortName, url, id!!, userId)
 
     private fun getUniqueShortName(): String {
-        val nameGenerator = nameGenerator::generateName
-        var generatedName = nameGenerator(generatedNameLength)
+        var generatedName: String
 
-        while (shortUrlRepository.countByShortName(generatedName) != 0L) {
-            generatedName = nameGenerator(generatedNameLength)
-        }
+        do {
+            generatedName = nameGenerator.generateName(generatedNameLength)
+        } while (shortUrlRepository.countByShortName(generatedName) != 0L)
 
         return generatedName
     }
