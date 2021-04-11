@@ -6,6 +6,7 @@ import com.urlshortener.core.exceptions.EntityNotFoundException
 import com.urlshortener.core.services.user.UserService
 import com.urlshortener.dal.entities.User
 import com.urlshortener.dal.repositories.UserRepository
+import io.quarkus.elytron.security.common.BcryptUtil
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.transaction.Transactional
@@ -44,7 +45,7 @@ class UserServiceImpl (
     private fun User.toDto(): UserDto = UserDto(name, role, password, 0, id!!)
 
     companion object {
-        private fun hashPassword(password: String) = password //TODO
+        private fun hashPassword(password: String) = BcryptUtil.bcryptHash(password)
         private fun notFoundByNameMessage(shortName: String) = "User with name $shortName not found"
         private const val alreadyExistsMessage = "User with same name already exists"
     }
