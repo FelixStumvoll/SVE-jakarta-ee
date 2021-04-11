@@ -5,8 +5,10 @@ import javax.persistence.*
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.Size
 
+const val shortNameConstraint = "ShortNameUniqueConstraint"
+
 @Entity
-@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["shortName"], name = "ShortNameUniqueConstraint")])
+@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["shortName"], name = shortNameConstraint)])
 data class ShortUrl(
     @field:NotBlank
     @field:URL
