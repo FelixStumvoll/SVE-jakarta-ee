@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.4.31"
-    kotlin("plugin.allopen") version "1.4.31"
-    kotlin("plugin.noarg") version "1.4.31"
+    kotlin("jvm")
+    kotlin("plugin.allopen")
+    kotlin("plugin.noarg")
     id("io.quarkus")
 }
 
@@ -14,20 +14,22 @@ val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 
+fun quarkus(module: String) = "io.quarkus:quarkus-$module"
+
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
-    implementation("io.quarkus:quarkus-hibernate-orm")
-    implementation("io.quarkus:quarkus-jdbc-h2")
-    implementation("io.quarkus:quarkus-hibernate-validator")
-    implementation("io.quarkus:quarkus-jdbc-mssql")
-    implementation("io.quarkus:quarkus-resteasy-jsonb")
-    implementation("io.quarkus:quarkus-kotlin")
-    implementation("io.quarkus:quarkus-resteasy")
-    implementation("io.quarkus:quarkus-resteasy-jackson")
-    implementation("io.quarkus:quarkus-smallrye-jwt")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("io.quarkus:quarkus-security-jpa")
-    implementation("io.quarkus:quarkus-arc")
+    implementation(quarkus("hibernate-orm"))
+    implementation(quarkus("jdbc-h2"))
+    implementation(quarkus("hibernate-validator"))
+    implementation(quarkus("jdbc-mssql"))
+    implementation(quarkus("resteasy-jsonb"))
+    implementation(quarkus("kotlin"))
+    implementation(quarkus("resteasy"))
+    implementation(quarkus("resteasy-jackson"))
+    implementation(quarkus("smallrye-jwt"))
+    implementation(quarkus("arc"))
+    implementation(quarkus("security-jpa"))
+    implementation(kotlin("stdlib-jdk8"))
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
 }
