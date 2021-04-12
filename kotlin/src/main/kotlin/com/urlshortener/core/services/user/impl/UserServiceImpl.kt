@@ -38,7 +38,7 @@ class UserServiceImpl(
                     userDto.name,
                     userDto.role,
                     userDto.password,
-                    0
+                    null
                 )
             )
         }.toDto()
