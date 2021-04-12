@@ -3,6 +3,7 @@ package com.urlshortener.api.controllers
 import com.urlshortener.core.services.shorturl.ShortUrlService
 import java.net.URI
 import javax.enterprise.context.RequestScoped
+import javax.inject.Inject
 import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.PathParam
@@ -10,7 +11,7 @@ import javax.ws.rs.core.Response
 
 @Path("/")
 @RequestScoped
-class RedirectController(private val shortUrlService: ShortUrlService) {
+class RedirectController(@Inject private val shortUrlService: ShortUrlService) {
 
     @GET
     @Path("/{shortName}")
