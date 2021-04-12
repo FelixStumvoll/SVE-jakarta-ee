@@ -2,5 +2,5 @@ package org.urlshortener.dal.entities;
 
 public class Constraints {
     public static final String shortUrlConstraint = "shortnameuniqueconstraint";
-    public static final String userNameConstraint = "UserNameUniqueConstraint";
+    public static final String userNameConstraint = "usernameuniqueconstraint";
 }
