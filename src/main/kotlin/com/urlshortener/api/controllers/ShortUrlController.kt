@@ -6,8 +6,9 @@ import com.urlshortener.core.dtos.CreateShortUrlDto
 import com.urlshortener.core.dtos.ShortUrlDto
 import com.urlshortener.core.dtos.UpdateShortUrlDto
 import com.urlshortener.core.services.shorturl.ShortUrlService
-import javax.annotation.security.RolesAllowed
 import java.net.URI
+import javax.annotation.security.RolesAllowed
+import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.validation.Valid
 import javax.ws.rs.*
@@ -16,25 +17,30 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.SecurityContext
 
 @Path("/short-url")
+@RequestScoped
 class ShortUrlController(
     @Inject private val shortUrlService: ShortUrlService,
 ) {
     @GET
-    fun getAll(): List<ShortUrlDto> =
-        shortUrlService.findAll("")
+    @RolesAllowed("Premium", "Free")
+    fun getAll(@Context securityContext: SecurityContext): List<ShortUrlDto> =
+        shortUrlService.findAll(securityContext.userPrincipal.name)
 
     @GET
+    @RolesAllowed("Premium", "Free")
     @Path("/{id}")
     fun getById(
         @PathParam("id") id: Long,
-    ): ShortUrlDto =
-        shortUrlService.findById(id, "")
+        @Context securityContext: SecurityContext,
+    ): ShortUrlDto {
+        return shortUrlService.findById(id, securityContext.userPrincipal.name)
+    }
 
     @POST
     @RolesAllowed("Premium", "Free")
     fun create(
-            @Valid createShortUrlDto: ApiCreateShortUrlDto,
-            @Context securityContext: SecurityContext,
+        @Valid createShortUrlDto: ApiCreateShortUrlDto,
+        @Context securityContext: SecurityContext,
     ): Response =
         shortUrlService.create(
             CreateShortUrlDto(
@@ -46,7 +52,7 @@ class ShortUrlController(
             Response.created(URI("/short-url/${it.id}")).build()
         }
 
-    @PUT
+    @PATCH
     @Path("/{id}")
     @RolesAllowed("Premium")
     fun update(
@@ -66,11 +72,13 @@ class ShortUrlController(
         }
 
     @DELETE
+    @RolesAllowed("Premium")
     @Path("/{id}")
     fun delete(
         @PathParam("id") id: Long,
+        @Context securityContext: SecurityContext,
     ): Response {
-        shortUrlService.delete(id, "")
+        shortUrlService.delete(id, securityContext.userPrincipal.name)
         return Response.ok().build()
     }
 }

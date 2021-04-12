@@ -1,35 +1,38 @@
 package com.urlshortener.core.services.user.impl
 
 import com.urlshortener.core.dtos.UserDto
-import com.urlshortener.core.exceptions.EntityModificationException
 import com.urlshortener.core.exceptions.EntityNotFoundException
 import com.urlshortener.core.services.user.UserService
+import com.urlshortener.core.util.withUniqueConstraintHandling
 import com.urlshortener.dal.entities.User
+import com.urlshortener.dal.entities.userNameConstraint
 import com.urlshortener.dal.repositories.UserRepository
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.transaction.Transactional
+import javax.transaction.UserTransaction
 
 @RequestScoped
-@Transactional
-class UserServiceImpl (
-    @Inject private val userRepository: UserRepository
-) : UserService{
+class UserServiceImpl(
+    @Inject private val userRepository: UserRepository,
+    @Inject private val userTransaction: UserTransaction
+) : UserService {
+    @Transactional
     override fun findByName(name: String): UserDto =
         userRepository.findByName(name)?.toDto() ?: throw EntityNotFoundException(
             notFoundByNameMessage(name)
         )
 
+    @Transactional
     override fun findById(id: Long): UserDto? =
         userRepository.findById(id)?.toDto()
 
+    @Transactional
     override fun delete(id: Long) =
         userRepository.deleteById(id)
 
     override fun create(userDto: UserDto): UserDto =
-        if(userRepository.existsByName(userDto.name))
-            throw EntityModificationException(alreadyExistsMessage)
-        else
+        userTransaction.withUniqueConstraintHandling(userNameConstraint, alreadyExistsMessage(userDto.name)) {
             userRepository.merge(
                 User(
                     userDto.name,
@@ -37,14 +40,15 @@ class UserServiceImpl (
                     userDto.password,
                     0
                 )
-            ).toDto()
+            )
+        }.toDto()
 
     override fun authenticate(userDto: UserDto, password: String): Boolean = userDto.password == password
 
     private fun User.toDto(): UserDto = UserDto(name, role, password, id!!)
 
     companion object {
-        private fun notFoundByNameMessage(shortName: String) = "User with name $shortName not found"
-        private const val alreadyExistsMessage = "User with same name already exists"
+        private fun notFoundByNameMessage(name: String) = "User with name $name not found"
+        private fun alreadyExistsMessage(name: String) = "User with name $name already exists"
     }
 }
