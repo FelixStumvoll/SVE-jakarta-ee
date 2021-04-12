@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.SecurityContext
 
 @Path("/short-url")
+@RequestScoped
 class ShortUrlController(
     @Inject private val shortUrlService: ShortUrlService,
 ) {
@@ -46,7 +47,7 @@ class ShortUrlController(
             Response.created(URI("/short-url/${it.id}")).build()
         }
 
-    @PUT
+    @PATCH
     @Path("/{id}")
     @RolesAllowed("user")
     fun update(

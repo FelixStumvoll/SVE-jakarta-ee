@@ -18,7 +18,6 @@ import java.sql.SQLException
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.transaction.UserTransaction
-import javax.validation.ConstraintViolationException
 
 @RequestScoped
 class ShortUrlServiceImpl(
@@ -77,8 +76,6 @@ class ShortUrlServiceImpl(
         block: () -> ShortUrlDto
     ): ShortUrlDto = try {
         transaction.execute(block)
-    } catch (ex: ConstraintViolationException) {
-        throw ex
     } catch (ex: Exception) {
         if (shortName != null) {
             val sqlException = ex.getException<SQLException>()
