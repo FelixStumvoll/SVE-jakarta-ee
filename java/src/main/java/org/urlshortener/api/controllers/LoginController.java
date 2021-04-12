@@ -1,6 +1,5 @@
 package org.urlshortener.api.controllers;
 
-import com.nimbusds.oauth2.sdk.id.Issuer;
 import io.smallrye.jwt.build.Jwt;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.urlshortener.api.dtos.CreateUserDto;
@@ -17,10 +16,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 
-@Path("/login")
-public class LoginController{
+@Path("")
+public class LoginController {
 
-    private UserService userService;
+    private final UserService userService;
 
     @ConfigProperty(name = "mp.jwt.verify.issuer")
     String issuer;
@@ -34,8 +33,8 @@ public class LoginController{
 
     @POST
     @Path("/register")
-    public Response mockRegister(@Valid CreateUserDto createUserDto){
-        userService.create(
+    public Response mockRegister(@Valid CreateUserDto createUserDto) {
+        this.userService.create(
                 new UserDto(
                         createUserDto.getName(),
                         createUserDto.getRole(),
@@ -46,20 +45,20 @@ public class LoginController{
     }
 
     @POST
-    @Path("/{userName}")
+    @Path("login/{userName}")
     public Response mockLogin(
             @PathParam("userName") String userName,
             PasswordDto passwordDto) {
-        var user = userService.findByName(userName);
-        if(!userService.authenticate(user, passwordDto.getPassword())){
+        var user = this.userService.findByName(userName);
+        if (!this.userService.authenticate(user, passwordDto.getPassword())) {
             throw new AuthenticationException("Wrong Passowrd or User");
         }
 
         var token = Jwt
-                .issuer(issuer)
+                .issuer(this.issuer)
                 .upn(user.getName())
                 .groups(user.getRole().toString())
-                .expiresIn(Duration.ofSeconds(jwtLifespan))
+                .expiresIn(Duration.ofSeconds(this.jwtLifespan))
                 .sign();
         return Response.ok(token).build();
     }
