@@ -1,8 +1,10 @@
 package org.urlshortener.core.user.impl;
 
+import lombok.NonNull;
 import org.urlshortener.core.dtos.UserDto;
 import org.urlshortener.core.exceptions.EntityNotFoundException;
 import org.urlshortener.core.user.UserService;
+import org.urlshortener.dal.entities.Constraints;
 import org.urlshortener.dal.entities.User;
 import org.urlshortener.dal.repositories.UserRepository;
 
@@ -10,11 +12,13 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.UserTransaction;
 
+import static org.urlshortener.core.util.TransactionUtils.withUniqueConstraintHandling;
+
 @RequestScoped
 public class UserServiceImpl implements UserService {
 
-    private UserRepository userRepository;
-    private UserTransaction transaction;
+    private final UserRepository userRepository;
+    private final UserTransaction transaction;
 
     @Inject
     public UserServiceImpl(UserRepository userRepository, UserTransaction transaction) {
@@ -23,7 +27,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto findByName(String name) {
+    public UserDto findByName(@NonNull String name) {
         var user = this.userRepository.findByName(name);
         if (user == null) {
             throw new EntityNotFoundException(notFoundByNameMessage(name));
@@ -33,22 +37,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto findById(Long id) {
+    public UserDto findById(@NonNull Long id) {
         return this.toDto(this.userRepository.findById(id));
     }
 
     @Override
-    public void delete(Long id) {
+    public void delete(@NonNull Long id) {
         this.userRepository.deleteById(id);
     }
 
     @Override
     public UserDto create(UserDto userDto) {
-        return null; //TODO
+        return withUniqueConstraintHandling(this.transaction, Constraints.shortUrlConstraint,
+                alreadyExistsMessage(userDto.getName()), () -> toDto(this.userRepository.merge(
+                        new User(
+                                null,
+                                userDto.getName(),
+                                userDto.getRole(),
+                                userDto.getPassword()
+                        ))));
     }
 
     @Override
-    public boolean authenticate(UserDto userDto, String password) {
+    public boolean authenticate(@NonNull UserDto userDto, @NonNull String password) {
         return userDto.getPassword().equals(password);
     }
 

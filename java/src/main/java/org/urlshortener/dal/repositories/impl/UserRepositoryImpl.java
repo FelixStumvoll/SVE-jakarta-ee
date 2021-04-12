@@ -3,9 +3,11 @@ package org.urlshortener.dal.repositories.impl;
 import org.urlshortener.dal.entities.User;
 import org.urlshortener.dal.repositories.UserRepository;
 
+import javax.enterprise.context.RequestScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+@RequestScoped
 public class UserRepositoryImpl implements UserRepository {
 
     @PersistenceContext
