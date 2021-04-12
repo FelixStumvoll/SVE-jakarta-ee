@@ -6,6 +6,5 @@ data class UserDto(
     val name: String,
     val role: UserRole,
     val password: String,
-    val createdUrls: Int,
     val id: Long?
 )

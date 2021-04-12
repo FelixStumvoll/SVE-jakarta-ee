@@ -1,5 +1,6 @@
 package com.urlshortener.api
 
+import com.urlshortener.core.exceptions.AuthenticationException
 import com.urlshortener.core.exceptions.EntityModificationException
 import com.urlshortener.core.exceptions.EntityNotFoundException
 import com.urlshortener.core.exceptions.ShortNameAlreadyExistsException
@@ -30,5 +31,11 @@ class ConstraintViolationHandler : ExceptionMapper<ConstraintViolationException>
 @Provider
 class ShortNameAlreadyExistsHandler : ExceptionMapper<ShortNameAlreadyExistsException> {
     override fun toResponse(ex: ShortNameAlreadyExistsException): Response =
+        Response.status(Response.Status.BAD_REQUEST).entity(ErrorResponse(ex.message!!)).build()
+}
+
+@Provider
+class AuthenticationExceptionHandler : ExceptionMapper<AuthenticationException> {
+    override fun toResponse(ex: AuthenticationException): Response =
         Response.status(Response.Status.BAD_REQUEST).entity(ErrorResponse(ex.message!!)).build()
 }

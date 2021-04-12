@@ -13,3 +13,9 @@ data class CreateUserDto(
     @field:NotNull
     var password: String
 )
+
+@NoArgs
+data class PasswordDto(
+    @field:NotNull
+    var password: String
+)

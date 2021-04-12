@@ -10,6 +10,5 @@ data class User(
     var name: String,
     var role: UserRole,
     var password: String,
-    var createdUrls: Int,
     @Id @GeneratedValue var id: Long? = null
 )
