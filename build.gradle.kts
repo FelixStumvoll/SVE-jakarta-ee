@@ -28,6 +28,7 @@ dependencies {
     implementation(quarkus("resteasy-jackson"))
     implementation(quarkus("smallrye-jwt"))
     implementation(quarkus("arc"))
+    implementation(quarkus("security-jpa"))
     implementation(kotlin("stdlib-jdk8"))
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")

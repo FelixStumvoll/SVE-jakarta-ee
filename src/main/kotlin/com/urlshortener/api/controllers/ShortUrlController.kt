@@ -32,7 +32,7 @@ class ShortUrlController(
         shortUrlService.findById(id, "")
 
     @POST
-    @RolesAllowed("user")
+    @RolesAllowed("Premium", "Free")
     fun create(
             @Valid createShortUrlDto: ApiCreateShortUrlDto,
             @Context securityContext: SecurityContext,
@@ -49,7 +49,7 @@ class ShortUrlController(
 
     @PATCH
     @Path("/{id}")
-    @RolesAllowed("user")
+    @RolesAllowed("Premium")
     fun update(
         updateDto: ApiUpdateShortUrlDto,
         @PathParam("id") id: Long,
