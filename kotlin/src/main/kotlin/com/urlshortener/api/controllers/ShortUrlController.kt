@@ -13,6 +13,7 @@ import javax.inject.Inject
 import javax.validation.Valid
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
+import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.SecurityContext
 
@@ -22,11 +23,13 @@ class ShortUrlController(
     @Inject private val shortUrlService: ShortUrlService,
 ) {
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed("Premium", "Free")
     fun getAll(@Context securityContext: SecurityContext): List<ShortUrlDto> =
         shortUrlService.findAll(securityContext.userPrincipal.name)
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed("Premium", "Free")
     @Path("/{id}")
     fun getById(
@@ -37,6 +40,8 @@ class ShortUrlController(
     }
 
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed("Premium", "Free")
     fun create(
         @Valid createShortUrlDto: ApiCreateShortUrlDto,
@@ -49,10 +54,12 @@ class ShortUrlController(
                 securityContext.userPrincipal.name
             )
         ).let {
-            Response.created(URI("/short-url/${it.id}")).build()
+            Response.created(URI("/short-url/${it.id}")).entity(it).build()
         }
 
     @PATCH
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{id}")
     @RolesAllowed("Premium")
     fun update(

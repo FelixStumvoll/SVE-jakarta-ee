@@ -12,6 +12,7 @@ import org.urlshortener.dal.entities.Constraints;
 import org.urlshortener.dal.entities.ShortUrl;
 import org.urlshortener.dal.repositories.ShortUrlRepository;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.transaction.UserTransaction;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static org.urlshortener.core.util.TransactionUtils.withUniqueConstraintHandling;
 
+@RequestScoped
 public class ShortUrlServiceImpl implements ShortUrlService {
 
     ShortUrlRepository shortUrlRepository;

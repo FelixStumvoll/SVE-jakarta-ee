@@ -3,7 +3,6 @@ package com.urlshortener.api
 import com.urlshortener.core.exceptions.AuthenticationException
 import com.urlshortener.core.exceptions.EntityModificationException
 import com.urlshortener.core.exceptions.EntityNotFoundException
-import com.urlshortener.core.exceptions.ShortNameAlreadyExistsException
 import javax.validation.ConstraintViolationException
 import javax.ws.rs.core.Response
 import javax.ws.rs.ext.ExceptionMapper
@@ -26,12 +25,6 @@ class ConstraintViolationHandler : ExceptionMapper<ConstraintViolationException>
     override fun toResponse(ex: ConstraintViolationException): Response =
         Response.status(Response.Status.BAD_REQUEST)
             .entity(ErrorResponse.of(ex.constraintViolations.map { "${it.propertyPath.last()} ${it.message}" })).build()
-}
-
-@Provider
-class ShortNameAlreadyExistsHandler : ExceptionMapper<ShortNameAlreadyExistsException> {
-    override fun toResponse(ex: ShortNameAlreadyExistsException): Response =
-        Response.status(Response.Status.BAD_REQUEST).entity(ErrorResponse(ex.message!!)).build()
 }
 
 @Provider

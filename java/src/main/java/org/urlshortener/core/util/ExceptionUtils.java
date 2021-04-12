@@ -5,7 +5,7 @@ public class ExceptionUtils {
         var exFind = t.getCause();
 
         while (exFind != null) {
-            if (exFind.getClass().equals(c)) {
+            if (c.isAssignableFrom(exFind.getClass())) {
                 return exFind;
             }
 

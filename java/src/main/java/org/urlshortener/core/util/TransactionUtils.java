@@ -5,6 +5,7 @@ import org.urlshortener.core.exceptions.EntityModificationException;
 import javax.transaction.UserTransaction;
 import javax.validation.ConstraintViolationException;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import static org.urlshortener.core.util.ExceptionUtils.getException;
@@ -16,7 +17,7 @@ public class TransactionUtils {
             var result = supplier.get();
             transaction.commit();
             return result;
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             transaction.rollback();
             throw ex;
         }
@@ -29,7 +30,10 @@ public class TransactionUtils {
             throw ex;
         } catch (Exception ex) {
             var sqlException = getException(ex, SQLException.class);
-            String msg = sqlException != null && sqlException.getMessage().contains(constraintName) ?
+            String msg = sqlException != null && sqlException
+                    .getMessage()
+                    .toLowerCase(Locale.ROOT)
+                    .contains(constraintName) ?
                     message : "error modifying entity";
 
             throw new EntityModificationException(msg);

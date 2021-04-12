@@ -8,49 +8,58 @@ import com.urlshortener.core.services.user.UserService
 import io.smallrye.jwt.build.Jwt
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.Duration
+import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.validation.Valid
-import javax.ws.rs.*
+import javax.ws.rs.POST
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
 import javax.ws.rs.core.Response
 
-@Path("/login")
+@Path("/")
+@RequestScoped
 class LoginController(
     @Inject private val userService: UserService
 ) {
-    @ConfigProperty(name = "mp.jwt.verify.issuer") var issuer: String? = null
-    @ConfigProperty(name = "urlshortener.login.jwtlifespan") var jwtLifespan: Long = 1000
+    @ConfigProperty(name = "mp.jwt.verify.issuer")
+    var issuer: String? = null
+
+    @ConfigProperty(name = "urlshortener.login.jwtlifespan")
+    var jwtLifespan: Long = 1000
 
     @POST
     @Path("/register")
     fun mockRegister(
         @Valid createUserDto: CreateUserDto,
     ): Response {
-        userService.create(UserDto(
-            createUserDto.name,
-            createUserDto.role,
-            createUserDto.password,
-            null,
-        ))
+        userService.create(
+            UserDto(
+                createUserDto.name,
+                createUserDto.role,
+                createUserDto.password,
+                null,
+            )
+        )
         return Response.ok("user ${createUserDto.name} created").build()
     }
 
 
     @POST
-    @Path("/{userName}")
+    @Path("login/{userName}")
     fun mockLogin(
         @PathParam("userName") userName: String,
         password: PasswordDto
-    ) : Response {
+    ): Response {
         val user = userService.findByName(userName)
-        if (!userService.authenticate(user, password.password)){
+        if (!userService.authenticate(user, password.password)) {
             throw AuthenticationException("Wrong Password or User")
         }
         val token: String = Jwt
-                .issuer(issuer)
-                .upn(user.name)
-                .groups(user.role.type)
-                .expiresIn(Duration.ofSeconds(jwtLifespan))
-                .sign()
+            .issuer(issuer)
+            .upn(user.name)
+            .groups(user.role.type)
+            .expiresIn(Duration.ofSeconds(jwtLifespan))
+            .sign()
         return Response.ok(token).build()
     }
 }
