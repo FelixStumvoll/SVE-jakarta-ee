@@ -9,7 +9,7 @@ import java.util.List;
 public interface ShortUrlRepository {
     ShortUrl merge(@NonNull @Valid ShortUrl shortUrl);
 
-    void deleteById(@NonNull Long id);
+    void deleteById(@NonNull Long id, @NonNull String userId);
 
     Long countByShortName(@NonNull String shortName);
 

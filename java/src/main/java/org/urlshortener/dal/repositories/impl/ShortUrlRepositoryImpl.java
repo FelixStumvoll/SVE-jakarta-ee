@@ -23,9 +23,10 @@ public class ShortUrlRepositoryImpl implements ShortUrlRepository {
     }
 
     @Override
-    public void deleteById(@NonNull Long id) {
-        var query = this.em.createQuery("delete from ShortUrl s where s.id = :id");
+    public void deleteById(@NonNull Long id, @NonNull String userId) {
+        var query = this.em.createQuery("delete from ShortUrl s where s.id = :id and s.userId = :userId");
         query.setParameter("id", id);
+        query.setParameter("userId", userId);
         query.executeUpdate();
     }
 
