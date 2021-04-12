@@ -1,5 +1,6 @@
 package org.urlshortener.dal.entities;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.URL;
@@ -12,6 +13,7 @@ import javax.validation.constraints.Size;
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"shortName"}, name = Constraints.shortUrlConstraint)})
 @NoArgsConstructor
+@AllArgsConstructor
 public class ShortUrl {
     @Id
     @GeneratedValue

@@ -13,9 +13,10 @@ import java.lang.Long as JavaLong
 class ShortUrlRepositoryImpl(@PersistenceContext private val em: EntityManager) : ShortUrlRepository {
     override fun merge(shortUrl: ShortUrl): ShortUrl = em.merge(shortUrl)
 
-    override fun deleteById(id: Long) {
-        em.createQuery("delete from ShortUrl s where s.id = :id").run {
+    override fun deleteById(id: Long, userId: String) {
+        em.createQuery("delete from ShortUrl s where s.id = :id and s.userId = :userId").run {
             setParameter("id", id)
+            setParameter("userId", userId)
             executeUpdate()
         }
     }
@@ -38,14 +39,6 @@ class ShortUrlRepositoryImpl(@PersistenceContext private val em: EntityManager) 
             setParameter("userid", userId)
             singleResult
         }
-
-    override fun existsByIdAndUserId(id: Long, userId: String): Boolean =
-        em.createQuery("select count(s) from ShortUrl s where s.id = :id and s.userId = :userid", JavaLong::class.java)
-            .run {
-                setParameter("id", id)
-                setParameter("userid", userId)
-                singleResult.toLong() != 0L
-            }
 
     override fun findAllByUserId(userId: String): List<ShortUrl> =
         em.createQuery("select s from ShortUrl s where s.userId = :userid", ShortUrl::class.java).run {

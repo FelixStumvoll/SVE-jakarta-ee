@@ -69,10 +69,7 @@ class ShortUrlServiceImpl(
         }.toDto()
 
     @Transactional
-    override fun delete(id: Long, userId: String) =
-        if (shortUrlRepository.existsByIdAndUserId(id, userId)) {
-            shortUrlRepository.deleteById(id)
-        } else throw EntityNotFoundException(notFoundByIdMessage(id))
+    override fun delete(id: Long, userId: String) = shortUrlRepository.deleteById(id, userId)
 
     private fun getById(id: Long, userId: String): ShortUrl =
         shortUrlRepository.findByIdAndUserId(id, userId) ?: throw EntityNotFoundException(
