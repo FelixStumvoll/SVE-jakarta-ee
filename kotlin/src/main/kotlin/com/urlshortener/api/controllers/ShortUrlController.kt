@@ -1,15 +1,18 @@
 package com.urlshortener.api.controllers
 
+import com.urlshortener.api.ID_CLAIM
 import com.urlshortener.api.dtos.ApiCreateShortUrlDto
 import com.urlshortener.api.dtos.ApiUpdateShortUrlDto
 import com.urlshortener.core.dtos.CreateShortUrlDto
 import com.urlshortener.core.dtos.ShortUrlDto
 import com.urlshortener.core.dtos.UpdateShortUrlDto
 import com.urlshortener.core.services.shorturl.ShortUrlService
+import org.eclipse.microprofile.jwt.JsonWebToken
 import java.net.URI
 import javax.annotation.security.RolesAllowed
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
+import javax.json.JsonNumber
 import javax.validation.Valid
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -26,7 +29,7 @@ class ShortUrlController(
     @Produces(MediaType.APPLICATION_JSON)
     @RolesAllowed("Premium", "Free")
     fun getAll(@Context securityContext: SecurityContext): List<ShortUrlDto> =
-        shortUrlService.findAll(securityContext.userPrincipal.name)
+        shortUrlService.findAll(securityContext.idClaim())
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -36,7 +39,7 @@ class ShortUrlController(
         @PathParam("id") id: Long,
         @Context securityContext: SecurityContext,
     ): ShortUrlDto {
-        return shortUrlService.findById(id, securityContext.userPrincipal.name)
+        return shortUrlService.findById(id, securityContext.idClaim())
     }
 
     @POST
@@ -51,7 +54,7 @@ class ShortUrlController(
             CreateShortUrlDto(
                 createShortUrlDto.shortName,
                 createShortUrlDto.url,
-                securityContext.userPrincipal.name
+                securityContext.idClaim()
             )
         ).let {
             Response.created(URI("/short-url/${it.id}")).entity(it).build()
@@ -72,7 +75,7 @@ class ShortUrlController(
                 updateDto.shortName,
                 updateDto.url,
                 id,
-                securityContext.userPrincipal.name
+                securityContext.idClaim()
             )
         ).let {
             Response.ok(it).build()
@@ -85,7 +88,9 @@ class ShortUrlController(
         @PathParam("id") id: Long,
         @Context securityContext: SecurityContext,
     ): Response {
-        shortUrlService.delete(id, securityContext.userPrincipal.name)
+        shortUrlService.delete(id, securityContext.idClaim())
         return Response.ok().build()
     }
+
+    fun SecurityContext.idClaim(): Long = (userPrincipal as JsonWebToken).getClaim<JsonNumber>(ID_CLAIM).longValue()
 }

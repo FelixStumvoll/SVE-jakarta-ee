@@ -15,7 +15,9 @@ data class CreateUserDto(
 )
 
 @NoArgs
-data class PasswordDto(
+data class LoginDto(
+    @field:NotNull
+    var username: String,
     @field:NotNull
     var password: String
 )

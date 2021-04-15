@@ -6,14 +6,16 @@ import javax.validation.constraints.NotBlank
 const val userNameConstraint = "UserNameUniqueConstraint"
 
 @Entity
-@Table(name="ShortUrlUser",
+@Table(
+    name = "ShortUrlUser",
     uniqueConstraints = [UniqueConstraint(columnNames = ["name"], name = userNameConstraint)]
 )
-data class User(
+class User(
     @field:NotBlank
     var name: String,
-    var role: UserRole,
+    @Enumerated var role: UserRole,
     var password: String,
+    @OneToMany @JoinColumn(name = "user_id") var shortUrls: MutableSet<ShortUrl> = mutableSetOf(),
     @Id @GeneratedValue var id: Long? = null
 )
 

@@ -7,5 +7,5 @@ interface UserService {
     fun findById(id: Long): UserDto?
     fun delete(id: Long)
     fun create(userDto: UserDto): UserDto
-    fun authenticate(userDto: UserDto, password: String): Boolean
+    fun authenticate(username: String, password: String): UserDto
 }

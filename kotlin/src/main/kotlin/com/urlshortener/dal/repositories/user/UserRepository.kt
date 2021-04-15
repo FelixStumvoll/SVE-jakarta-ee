@@ -1,4 +1,4 @@
-package com.urlshortener.dal.repositories
+package com.urlshortener.dal.repositories.user
 
 import com.urlshortener.dal.entities.User
 import javax.validation.Valid

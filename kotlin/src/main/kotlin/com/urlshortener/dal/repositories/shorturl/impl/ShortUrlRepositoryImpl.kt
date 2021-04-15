@@ -1,9 +1,10 @@
 @file:Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 
-package com.urlshortener.dal.repositories.impl
+package com.urlshortener.dal.repositories.shorturl.impl
 
 import com.urlshortener.dal.entities.ShortUrl
-import com.urlshortener.dal.repositories.ShortUrlRepository
+import com.urlshortener.dal.repositories.shorturl.ShortUrlRepository
+import com.urlshortener.dal.util.singleResult
 import javax.enterprise.context.RequestScoped
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
@@ -13,8 +14,8 @@ import java.lang.Long as JavaLong
 class ShortUrlRepositoryImpl(@PersistenceContext private val em: EntityManager) : ShortUrlRepository {
     override fun merge(shortUrl: ShortUrl): ShortUrl = em.merge(shortUrl)
 
-    override fun deleteById(id: Long, userId: String) {
-        em.createQuery("delete from ShortUrl s where s.id = :id and s.userId = :userId").run {
+    override fun deleteById(id: Long, userId: Long) {
+        em.createQuery("delete from ShortUrl s where s.id = :id and s.user.id = :userId").run {
             setParameter("id", id)
             setParameter("userId", userId)
             executeUpdate()
@@ -30,19 +31,19 @@ class ShortUrlRepositoryImpl(@PersistenceContext private val em: EntityManager) 
     override fun findByShortName(shortName: String): ShortUrl? =
         em.createQuery("select s from ShortUrl s where s.shortName = :shortName", ShortUrl::class.java).run {
             setParameter("shortName", shortName)
-            singleResult
+            singleResult()
         }
 
-    override fun findByIdAndUserId(id: Long, userId: String): ShortUrl? =
-        em.createQuery("select s from ShortUrl s where s.id = :id and s.userId = :userid", ShortUrl::class.java).run {
+    override fun findByIdAndUserId(id: Long, userId: Long): ShortUrl? =
+        em.createQuery("select s from ShortUrl s where s.id = :id and s.user.id = :userid", ShortUrl::class.java).run {
             setParameter("id", id)
             setParameter("userid", userId)
-            singleResult
+            singleResult()
         }
 
-    override fun findAllByUserId(userId: String): List<ShortUrl> =
-        em.createQuery("select s from ShortUrl s where s.userId = :userid", ShortUrl::class.java).run {
+    override fun findAllForUser(userId: Long): List<ShortUrl> =
+        em.createQuery("select s from ShortUrl s where s.user.id = :userid", ShortUrl::class.java).run {
             setParameter("userid", userId)
-            resultList.toList()
+            resultList
         }
 }

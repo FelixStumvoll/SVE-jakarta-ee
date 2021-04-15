@@ -1,9 +1,9 @@
 package com.urlshortener.api.controllers
 
+import com.urlshortener.api.ID_CLAIM
 import com.urlshortener.api.dtos.CreateUserDto
-import com.urlshortener.api.dtos.PasswordDto
+import com.urlshortener.api.dtos.LoginDto
 import com.urlshortener.core.dtos.UserDto
-import com.urlshortener.core.exceptions.AuthenticationException
 import com.urlshortener.core.services.user.UserService
 import io.smallrye.jwt.build.Jwt
 import org.eclipse.microprofile.config.inject.ConfigProperty
@@ -13,7 +13,6 @@ import javax.inject.Inject
 import javax.validation.Valid
 import javax.ws.rs.POST
 import javax.ws.rs.Path
-import javax.ws.rs.PathParam
 import javax.ws.rs.core.Response
 
 @Path("/")
@@ -29,7 +28,7 @@ class LoginController(
 
     @POST
     @Path("/register")
-    fun mockRegister(
+    fun register(
         @Valid createUserDto: CreateUserDto,
     ): Response {
         userService.create(
@@ -45,18 +44,16 @@ class LoginController(
 
 
     @POST
-    @Path("login/{userName}")
-    fun mockLogin(
-        @PathParam("userName") userName: String,
-        password: PasswordDto
+    @Path("/login")
+    fun login(
+        loginDto: LoginDto
     ): Response {
-        val user = userService.findByName(userName)
-        if (!userService.authenticate(user, password.password)) {
-            throw AuthenticationException("Wrong Password or User")
-        }
+        val user = userService.authenticate(loginDto.username, loginDto.password)
+
         val token: String = Jwt
             .issuer(issuer)
             .upn(user.name)
+            .claim(ID_CLAIM, user.id)
             .groups(user.role.type)
             .expiresIn(Duration.ofSeconds(jwtLifespan))
             .sign()

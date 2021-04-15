@@ -9,12 +9,12 @@ const val shortNameConstraint = "ShortNameUniqueConstraint"
 
 @Entity
 @Table(uniqueConstraints = [UniqueConstraint(columnNames = ["shortName"], name = shortNameConstraint)])
-data class ShortUrl(
+class ShortUrl(
     @field:NotBlank
     @field:URL
     var url: String,
     @field:Size(min = 2, max = 10)
     var shortName: String,
-    var userId: String,
+    @ManyToOne var user: User,
     @Id @GeneratedValue var id: Long? = null
 )

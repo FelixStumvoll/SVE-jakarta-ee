@@ -1,13 +1,14 @@
-package com.urlshortener.dal.repositories.impl
+package com.urlshortener.dal.repositories.user.impl
 
 import com.urlshortener.dal.entities.User
-import com.urlshortener.dal.repositories.UserRepository
+import com.urlshortener.dal.repositories.user.UserRepository
+import com.urlshortener.dal.util.singleResult
 import javax.enterprise.context.RequestScoped
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
 
 @RequestScoped
-class UserRepositoryImpl(@PersistenceContext private val em: EntityManager) : UserRepository{
+class UserRepositoryImpl(@PersistenceContext private val em: EntityManager) : UserRepository {
     override fun merge(user: User): User = em.merge(user)
 
     override fun deleteById(id: Long) {
@@ -20,7 +21,7 @@ class UserRepositoryImpl(@PersistenceContext private val em: EntityManager) : Us
     override fun findByName(name: String): User? =
         em.createQuery("select u from User u where u.name = :name", User::class.java).run {
             setParameter("name", name)
-            singleResult
+            singleResult()
         }
 
     override fun findById(userId: Long): User? = em.find(User::class.java, userId)

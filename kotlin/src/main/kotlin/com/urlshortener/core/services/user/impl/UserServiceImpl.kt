@@ -1,12 +1,13 @@
 package com.urlshortener.core.services.user.impl
 
 import com.urlshortener.core.dtos.UserDto
+import com.urlshortener.core.exceptions.AuthenticationException
 import com.urlshortener.core.exceptions.EntityNotFoundException
 import com.urlshortener.core.services.user.UserService
 import com.urlshortener.core.util.withUniqueConstraintHandling
 import com.urlshortener.dal.entities.User
 import com.urlshortener.dal.entities.userNameConstraint
-import com.urlshortener.dal.repositories.UserRepository
+import com.urlshortener.dal.repositories.user.UserRepository
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.transaction.Transactional
@@ -37,13 +38,21 @@ class UserServiceImpl(
                 User(
                     userDto.name,
                     userDto.role,
-                    userDto.password,
-                    null
+                    userDto.password
                 )
             )
         }.toDto()
 
-    override fun authenticate(userDto: UserDto, password: String): Boolean = userDto.password == password
+    @Transactional
+    override fun authenticate(username: String, password: String): UserDto {
+        val user = userRepository.findByName(username)
+
+        if (user == null || user.password != password) {
+            throw AuthenticationException("Wrong username or password")
+        }
+
+        return user.toDto()
+    }
 
     private fun User.toDto(): UserDto = UserDto(name, role, password, id!!)
 
