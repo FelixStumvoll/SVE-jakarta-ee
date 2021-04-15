@@ -1,12 +1,15 @@
 package org.urlshortener.api.dtos;
 
-import io.smallrye.common.constraint.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
+
 @Data
 @NoArgsConstructor
-public class PasswordDto {
+public class LoginDto {
     @NotNull
     private String password;
+    @NotNull
+    private String username;
 }

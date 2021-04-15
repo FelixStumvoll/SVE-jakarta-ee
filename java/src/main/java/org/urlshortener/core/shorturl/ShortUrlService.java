@@ -10,13 +10,13 @@ import java.util.List;
 public interface ShortUrlService {
     ShortUrlDto findByShortname(@NonNull String shortName);
 
-    List<ShortUrlDto> findAll(@NonNull String userId);
+    List<ShortUrlDto> findAll(long userId);
 
-    ShortUrlDto findById(@NonNull Long id, @NonNull String userId);
+    ShortUrlDto findById(long id, long userId);
 
     ShortUrlDto update(@NonNull UpdateShortUrlDto updateShortUrlDto);
 
-    void delete(@NonNull Long id, @NonNull String userId);
+    void delete(long id, long userId);
 
     ShortUrlDto create(@NonNull CreateShortUrlDto createShortUrlDto);
 }

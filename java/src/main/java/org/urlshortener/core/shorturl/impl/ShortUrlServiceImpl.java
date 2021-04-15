@@ -10,7 +10,8 @@ import org.urlshortener.core.namegenerator.NameGenerator;
 import org.urlshortener.core.shorturl.ShortUrlService;
 import org.urlshortener.dal.entities.Constraints;
 import org.urlshortener.dal.entities.ShortUrl;
-import org.urlshortener.dal.repositories.ShortUrlRepository;
+import org.urlshortener.dal.repositories.shorturl.ShortUrlRepository;
+import org.urlshortener.dal.repositories.user.UserRepository;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -24,18 +25,21 @@ import static org.urlshortener.core.util.TransactionUtils.withUniqueConstraintHa
 @RequestScoped
 public class ShortUrlServiceImpl implements ShortUrlService {
 
-    ShortUrlRepository shortUrlRepository;
+    final ShortUrlRepository shortUrlRepository;
 
-    NameGenerator nameGenerator;
+    final UserRepository userRepository;
 
-    UserTransaction transaction;
+    final NameGenerator nameGenerator;
+
+    final UserTransaction transaction;
 
     @ConfigProperty(name = "urlshortener.generatedNameLength")
     int generatedNameLength;
 
     @Inject
-    public ShortUrlServiceImpl(ShortUrlRepository shortUrlRepository, NameGenerator nameGenerator, UserTransaction transaction) {
+    public ShortUrlServiceImpl(ShortUrlRepository shortUrlRepository, UserRepository userRepository, NameGenerator nameGenerator, UserTransaction transaction) {
         this.shortUrlRepository = shortUrlRepository;
+        this.userRepository = userRepository;
         this.nameGenerator = nameGenerator;
         this.transaction = transaction;
     }
@@ -51,13 +55,13 @@ public class ShortUrlServiceImpl implements ShortUrlService {
     }
 
     @Override
-    public List<ShortUrlDto> findAll(@NonNull String userId) {
-        var shortUrls = this.shortUrlRepository.findAllByUserId(userId);
+    public List<ShortUrlDto> findAll(long userId) {
+        var shortUrls = this.shortUrlRepository.findAllForUser(userId);
         return shortUrls.stream().map(ShortUrlServiceImpl::toDto).collect(Collectors.toList());
     }
 
     @Override
-    public ShortUrlDto findById(@NonNull Long id, @NonNull String userId) {
+    public ShortUrlDto findById(long id, long userId) {
         return toDto(this.getById(id, userId));
     }
 
@@ -81,7 +85,7 @@ public class ShortUrlServiceImpl implements ShortUrlService {
 
     @Transactional
     @Override
-    public void delete(@NonNull Long id, @NonNull String userId) {
+    public void delete(long id, long userId) {
         this.shortUrlRepository.deleteById(id, userId);
     }
 
@@ -90,14 +94,19 @@ public class ShortUrlServiceImpl implements ShortUrlService {
         return withUniqueConstraintHandling(this.transaction, Constraints.shortUrlConstraint,
                                             shortUrlAlreadyExistsMessage(createShortUrlDto.getShortName()), () -> {
                     var shortName = createShortUrlDto.getShortName() != null ? createShortUrlDto.getShortName() : this.getUniqueShortName();
+                    var user = this.userRepository.findById(createShortUrlDto.getUserId());
+
+                    if (user == null) {
+                        throw new EntityNotFoundException(userNotFoundByIdMessage(createShortUrlDto.getUserId()));
+                    }
+
                     return toDto(this.shortUrlRepository.merge(
-                            new ShortUrl(null, createShortUrlDto.getUrl(), shortName,
-                                         createShortUrlDto.getUserId())));
+                            new ShortUrl(null, createShortUrlDto.getUrl(), shortName, user)));
 
                 });
     }
 
-    private ShortUrl getById(Long id, String userId) {
+    private ShortUrl getById(long id, long userId) {
         var shortUrl = this.shortUrlRepository.findByIdAndUserId(id, userId);
         if (shortUrl == null) {
             throw new EntityNotFoundException(notFoundByIdMessage(id));
@@ -107,7 +116,8 @@ public class ShortUrlServiceImpl implements ShortUrlService {
     }
 
     private static ShortUrlDto toDto(ShortUrl shortUrl) {
-        return new ShortUrlDto(shortUrl.getShortName(), shortUrl.getUrl(), shortUrl.getId(), shortUrl.getUserId());
+        return new ShortUrlDto(shortUrl.getShortName(), shortUrl.getUrl(), shortUrl.getId(),
+                               shortUrl.getUser().getId());
     }
 
     private String getUniqueShortName() {
@@ -120,7 +130,7 @@ public class ShortUrlServiceImpl implements ShortUrlService {
         return generatedName;
     }
 
-    private static String notFoundByIdMessage(Long id) {
+    private static String notFoundByIdMessage(long id) {
         return "Short url with id " + id + " not found";
     }
 
@@ -130,5 +140,9 @@ public class ShortUrlServiceImpl implements ShortUrlService {
 
     private static String shortUrlAlreadyExistsMessage(String shortName) {
         return "Short url with name " + shortName + " already exists";
+    }
+
+    private static String userNotFoundByIdMessage(long id) {
+        return "user with id " + id + " not found";
     }
 }

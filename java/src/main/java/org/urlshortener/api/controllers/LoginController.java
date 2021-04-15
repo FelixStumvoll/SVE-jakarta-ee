@@ -2,17 +2,18 @@ package org.urlshortener.api.controllers;
 
 import io.smallrye.jwt.build.Jwt;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.urlshortener.api.AuthConstants;
 import org.urlshortener.api.dtos.CreateUserDto;
-import org.urlshortener.api.dtos.PasswordDto;
+import org.urlshortener.api.dtos.LoginDto;
 import org.urlshortener.core.dtos.UserDto;
-import org.urlshortener.core.exceptions.AuthenticationException;
 import org.urlshortener.core.user.UserService;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 
@@ -32,8 +33,9 @@ public class LoginController {
     }
 
     @POST
+    @Consumes({MediaType.APPLICATION_JSON})
     @Path("/register")
-    public Response mockRegister(@Valid CreateUserDto createUserDto) {
+    public Response register(@Valid CreateUserDto createUserDto) {
         this.userService.create(
                 new UserDto(
                         createUserDto.getName(),
@@ -45,19 +47,17 @@ public class LoginController {
     }
 
     @POST
-    @Path("login/{userName}")
-    public Response mockLogin(
-            @PathParam("userName") String userName,
-            PasswordDto passwordDto) {
-        var user = this.userService.findByName(userName);
-        if (!this.userService.authenticate(user, passwordDto.getPassword())) {
-            throw new AuthenticationException("Wrong Passowrd or User");
-        }
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Path("login")
+    public Response login(
+            LoginDto loginDto) {
+        var user = this.userService.authenticate(loginDto.getUsername(), loginDto.getPassword());
 
         var token = Jwt
                 .issuer(this.issuer)
                 .upn(user.getName())
-                .groups(user.getRole().toString())
+                .claim(AuthConstants.ID_CLAIM, user.getId())
+                .groups(user.getRole().value)
                 .expiresIn(Duration.ofSeconds(this.jwtLifespan))
                 .sign();
         return Response.ok(token).build();

@@ -1,4 +1,4 @@
-package org.urlshortener.dal.repositories;
+package org.urlshortener.dal.repositories.shorturl;
 
 import lombok.NonNull;
 import org.urlshortener.dal.entities.ShortUrl;
@@ -9,15 +9,13 @@ import java.util.List;
 public interface ShortUrlRepository {
     ShortUrl merge(@NonNull @Valid ShortUrl shortUrl);
 
-    void deleteById(@NonNull Long id, @NonNull String userId);
+    void deleteById(long id, long userId);
 
     Long countByShortName(@NonNull String shortName);
 
     ShortUrl findByShortName(@NonNull String shortName);
 
-    ShortUrl findByIdAndUserId(Long id, String userId);
+    ShortUrl findByIdAndUserId(long id, long userId);
 
-    boolean existsByIdAndUserId(Long id, String userId);
-
-    List<ShortUrl> findAllByUserId(String userId);
+    List<ShortUrl> findAllForUser(long userId);
 }

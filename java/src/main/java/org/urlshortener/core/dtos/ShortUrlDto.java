@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 public class ShortUrlDto {
     private String shortName;
     private String url;
-    private Long id;
-    private String userId;
+    private long id;
+    private long userId;
 }

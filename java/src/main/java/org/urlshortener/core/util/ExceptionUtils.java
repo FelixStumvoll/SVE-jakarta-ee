@@ -1,12 +1,12 @@
 package org.urlshortener.core.util;
 
 public class ExceptionUtils {
-    public static Throwable getException(Throwable t, Class<?> c) {
+    public static <T extends Throwable> T getException(Throwable t, Class<T> c) {
         var exFind = t.getCause();
 
         while (exFind != null) {
             if (c.isAssignableFrom(exFind.getClass())) {
-                return exFind;
+                return (T) exFind;
             }
 
             exFind = exFind.getCause();

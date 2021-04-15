@@ -11,5 +11,5 @@ public class UpdateShortUrlDto {
     private String shortName;
     private String url;
     private long id;
-    private String userId;
+    private long userId;
 }

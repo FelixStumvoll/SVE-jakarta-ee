@@ -12,6 +12,5 @@ public class CreateShortUrlDto {
     private String shortName;
     @NonNull
     private String url;
-    @NonNull
-    private String userId;
+    private long userId;
 }

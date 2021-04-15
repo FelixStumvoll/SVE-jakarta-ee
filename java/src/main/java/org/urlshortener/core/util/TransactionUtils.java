@@ -1,5 +1,6 @@
 package org.urlshortener.core.util;
 
+import lombok.SneakyThrows;
 import org.urlshortener.core.exceptions.EntityModificationException;
 
 import javax.transaction.UserTransaction;
@@ -23,20 +24,25 @@ public class TransactionUtils {
         }
     }
 
+    @SneakyThrows
     public static <T> T withUniqueConstraintHandling(UserTransaction transaction, String constraintName, String message, Supplier<T> block) {
         try {
             return executeForResult(transaction, block);
-        } catch (ConstraintViolationException ex) {
-            throw ex;
         } catch (Exception ex) {
+            var constraintViolationException = getException(ex, ConstraintViolationException.class);
+
+            if (constraintViolationException != null) {
+                throw constraintViolationException;
+            }
+
             var sqlException = getException(ex, SQLException.class);
-            String msg = sqlException != null && sqlException
+            if (sqlException != null && sqlException
                     .getMessage()
                     .toLowerCase(Locale.ROOT)
-                    .contains(constraintName) ?
-                    message : "error modifying entity";
-
-            throw new EntityModificationException(msg);
+                    .contains(constraintName)) {
+                throw new EntityModificationException(message);
+            }
+            throw ex;
         }
     }
 }
