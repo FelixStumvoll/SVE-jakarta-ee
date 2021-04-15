@@ -1,22 +1,14 @@
 # Quarkus Java - Kotlin Comparison
 
-The following outlines the difference of developing a Quarkus application in Java and Kotlin. For this purpose a URL
-shortening service was implemented.
+The purpose of this project is to show how a Quarkus application can be implemented with Kotlin and what the major
+differences to the Java implementation are. For this purpose a URL shortening service was implemented in both languages
 
 ## Application
 
-The implemented application to demonstrate the implementation differences is a URL shortening service.
-
-### Architecture
-
-The following image shows how the components of the application are connected
-
-![architecture](doc/images/urlshortener.svg)
-
-### Functionality
-
 The core functionality is to create and use short links to other websites. This is achieved by mapping URLs to short
 names. By navigating to the route with the short name, the server redirects the user to the mapped URI.
+
+For this the application provides the following endpoints.
 
 | Method | Routes | Description |
 | -------- | -------- |-------- |
@@ -27,15 +19,23 @@ names. By navigating to the route with the short name, the server redirects the 
 | PATCH |/short-url/{id}| Update a mapping, Premium only|
 | DELETE |/short-url/{id}| Delete a new mapping, Premium only|
 
-To create and view existing mappings, the user must be logged in. This is checked by providing a JWT token, which is
-issued by the application. To obtain a token a simple login mechanism was implemented.
+To create and view existing mappings, the user must provide a valid JWT. This token is issued by the application, and
+can be obtained by sending valid credentials to the `/login` endpoint.
 
 Users are separated in Premium and Free. The difference is that Free users cannot use update or delete mappings.
+
+The authentication endpoints can be seen in the following table.
 
 | Method | Routes | Description |
 | -------- | -------- |-------- |
 | POST |/register| Register a new User|
-| POST |/login/{userName}| Authenticate User|
+| POST |/login| Authenticate User|
+
+### Architecture
+
+The following image shows how the components of the application are connected
+
+![architecture](doc/images/urlshortener.svg)
 
 ## Differences between Java and Kotlin
 
@@ -105,14 +105,8 @@ override fun generateName(length: Int): String =
 ### POJOs vs Data Classes
 
 Domain Objects and DTOs in Java usually contain a lot of boilerplate code. Even though only fields are needed, getters,
-setters and a constructer must be generated. In Kotlin, for this purposes data classes exists, which are a lot less
+setters and a constructor must be generated. In Kotlin, for this purpose data classes exists, which are a lot less
 verbose than their Java counterpart. With the library Lombok, these data classes can be imitated in Java.
-
-### Nullsafety
-
-Checking for null can be very tedious but is often necessary to prevent errors. In Kotlin by default types cannot
-be `null`. With this feature, possible null related errors can be detected at compile time. Lombok offers a `@NonNull`
-Annotation, which imitates this feature. Examples for data classes with these features can be seen below.
 
 #### Kotlin Data Class
 
@@ -142,16 +136,117 @@ public class UserDto {
 }
 ```
 
+### Nullsafety
+
+A common issue when writing Java is the lack of support for nullable types. What this means is that every non-primitive
+type can be null and must be explicitly checked. In the implementation of the URL shortener this was simplified by using
+the `@NonNull` annotation provided by Lombok, however this does not provide compile time checking.
+
+Kotlin contrary to Java has nullable types, which is very helpful since it can be checked at compile time. Nullable
+types also help define interfaces. For example, it can be explicitly defined that the return type of a function can
+be `null`.
+
+### Implementing Utilities / Extending existing code
+
+Something that is often needed when writing Software using preexisting APIs is to implement utilities or common
+functions which build upon already existing interfaces.
+
+In this regard Kotlin is way ahead of Java, as it provides a lot of useful features which help implement such utilities
+like extension functions, trailing lambdas or inline functions. The latter can even help to circumvent the type erasure
+present on the JVM. This leads ultimately to a more logical straightforward code.
+
+#### Get Exception Utility
+
+##### Java
+
+```java
+public class ExceptionUtils {
+    public static <T extends Throwable> T getException(Throwable t, Class<T> c) {
+        var exFind = t.getCause();
+
+        while (exFind != null) {
+            if (c.isAssignableFrom(exFind.getClass())) {
+                return (T) exFind;
+            }
+
+            exFind = exFind.getCause();
+        }
+
+        return null;
+    }
+}
+
+```
+
+##### Kotlin
+
+```kotlin
+inline fun <reified T : Throwable> Throwable.getException(): T? {
+    var exFind = this.cause
+
+    while (exFind != null) {
+        if (exFind is T) {
+            return exFind
+        }
+
+        exFind = exFind.cause
+    }
+    return null
+}
+```
+
+#### Transaction Utility
+
+##### Java
+
+```java
+public class TransactionUtils {
+    public static <T> T executeForResult(UserTransaction transaction, Supplier<T> supplier) throws Exception {
+        try {
+            transaction.begin();
+            var result = supplier.get();
+            transaction.commit();
+            return result;
+        } catch (RuntimeException ex) {
+            transaction.rollback();
+            throw ex;
+        }
+    }
+}
+
+    executeForResult(transaction, () ->{
+        //code    
+        });
+```
+
+##### Kotlin
+
+```kotlin
+inline fun <T> UserTransaction.execute(block: () -> T): T = try {
+    begin()
+    val res = block()
+    commit()
+    res
+} catch (ex: RuntimeException) {
+    rollback()
+    throw  ex
+}
+
+transaction.execute {
+    //code
+}
+```
+
 ## "Readiness" of Kotlin of JarkartaaEE/Quarkus Development
 
 The following sections outline if Kotlin is ready to be used with Quarkus.
 
 ### Kotlin NoArgs Plugins
 
-Kotlin provides a very simple syntax for creating data classes (see example below). However, those do not work natively
+Kotlin provides a very simple syntax for creating POJO classes (see example below). However, those do not work natively
 with Quarkus since all Beans are required to have an empty constructor. Since this is a known issue there is a gradle
 plugin called `org.jetbrains.kotlin.plugin.noarg` available, which generates an empty constructor at compile time.
-However this plugin isn't included per default when creating a new Quarkus project, but must be added and configured
+However, this plugin isn't included per default when creating a new Quarkus project, but must be added and configured
 manually.
 
 ```kotlin
@@ -171,11 +266,11 @@ data class ShortUrl(
 
 A core concept of Kotlin is immutability. The language has a special keyword `val` which marks variables as immutable.
 Collections such as `List` and `Set` are immutable by default and mutability must be explicitly specified by using their
-mutable counterparts. This is helps creating safer code since variables a guaranteed to stay the same after they have
+mutable counterparts. This is helps to create safer code since variables a guaranteed to stay the same after they have
 been initialized.
 
-However Quarkus does not fully benefit from the immutability of Kotlin, especially when defining data classes which are
-used to model REST API requests and responses.
+Quarkus does not fully benefit from the immutability of Kotlin, especially when defining data classes which are used to
+model REST API requests and responses.
 
 For example the following snippet displays the data class which is used to model the request object for creating a new
 short url. As you can see are all properties required to be mutable. This is because Quarkus creates a new object using
@@ -220,7 +315,7 @@ class ShortUrlServiceImpl(
 ### JPA Queries
 
 While JPA provides a very nice API for creating database queries, it is not fully compatible with Kotlin as of right
-now. When returning a built in type from a `TypedQuery` such as a string or a number the Java class must be provided
+now. When returning a built-in type from a `TypedQuery` such as a string, or a number the Java class must be provided
 instead of the Kotlin class as seen in the example below. This is not only cumbersome but also leads to a compiler
 warning. In the example below the method `.toLong` is used to convert it to the Java primitive type `long` which is
 equivalent to the Kotlin `Long` type.
@@ -237,17 +332,25 @@ em.createQuery(
 }
 ```
 
+JPA also lacks support for Kotlin nullable types. When a query has no matching result it throws an exception when
+accessing the `singleResult` property. This desired behaviour can be achieved with a simple extension function seen below.
+
+```kotlin
+fun <T> TypedQuery<T>.singleResult(): T? = this.resultList.firstOrNull()
+```
+
 ### Checked Exceptions
 
 The usefulness of checked exceptions is a hotly discussed topic, some consider them useful while others despise them.
-Apparently does the Kotlin team think the latter since Kotlin has no checked exceptions (To stay compatible with Java
-methods can be annotated with `@Throws` to mimics the `throws` keyword in Java). This however leads to some strange
-behavior when developing a Quarkus application. For example if a method throws a checked exception which is not declared
-Quarkus wraps it in a `ArcUndeclaredThrowableException`. Since this is not very well documented, it took some additional
-development time to figure out how to solve this.
+The Kotlin team apparently does not deem them useful since Kotlin has no checked exceptions (To stay compatible with Java
+methods can be annotated with `@Throws` to mimics the `throws` keyword in Java). 
+
+This however leads to some strange behavior when developing a Quarkus application. For example if a method throws a 
+checked exception which is not declared Quarkus wraps it in a `ArcUndeclaredThrowableException`. Sadly this is not 
+documented very well, which might lead to some additional tinkering when developing a Quarkus application in Kotlin.
 
 ## Conclusion
 
-Kotlin certainly offers some nice advantages, most of which can be utilized with Quarkus. However when developing a
-Quarkus application one will face some language specific problems, which are not too well documented. In the end the
-developer has to decide for himself if the benefits of Kotlin outweight the shortcommings.
+Kotlin offers lots of advantages compared to Java. However, when developing a
+Quarkus application one will face some language specific problems, which are not too well documented.
+In the end the developer has to decide for himself if the benefits of Kotlin outweigh the shortcomings.
