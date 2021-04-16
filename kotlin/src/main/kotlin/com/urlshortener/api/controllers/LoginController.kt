@@ -28,9 +28,7 @@ class LoginController(
 
     @POST
     @Path("/register")
-    fun register(
-        @Valid createUserDto: CreateUserDto,
-    ): Response {
+    fun register(@Valid createUserDto: CreateUserDto, ): Response {
         userService.create(
             UserDto(
                 createUserDto.name,
@@ -45,9 +43,7 @@ class LoginController(
 
     @POST
     @Path("/login")
-    fun login(
-        loginDto: LoginDto
-    ): Response {
+    fun login(@Valid loginDto: LoginDto): Response {
         val user = userService.authenticate(loginDto.username, loginDto.password)
 
         val token: String = Jwt

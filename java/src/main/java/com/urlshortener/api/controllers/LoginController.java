@@ -49,8 +49,7 @@ public class LoginController {
     @POST
     @Consumes({MediaType.APPLICATION_JSON})
     @Path("login")
-    public Response login(
-            LoginDto loginDto) {
+    public Response login(@Valid LoginDto loginDto) {
         var user = this.userService.authenticate(loginDto.getUsername(), loginDto.getPassword());
 
         var token = Jwt
