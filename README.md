@@ -50,15 +50,14 @@ the code below.
 ##### Java
 
 ```java
-return Response
-        .status(Response.Status.BAD_REQUEST)
+Response.status(Response.Status.BAD_REQUEST)
         .entity(new ErrorResponse(e.getConstraintViolations()
         .stream()
-        .map(constraintViolation->{
-        String lastElem="";
-        for(Path.Node node:constraintViolation.getPropertyPath())
-        lastElem=node.getName();
-        return lastElem+" "+constraintViolation.getMessage();
+        .map(constraintViolation -> {
+            String lastElem = "";
+            for(Path.Node node:constraintViolation.getPropertyPath())
+                lastElem=node.getName();
+            return lastElem + " " + constraintViolation.getMessage();
         })
         .collect(Collectors.toList())))
         .build();
@@ -67,7 +66,7 @@ return Response
 ##### Kotlin
 
 ```kotlin
-= Response.status(Response.Status.BAD_REQUEST)
+Response.status(Response.Status.BAD_REQUEST)
     .entity(
         ErrorResponse.of(
             ex.constraintViolations.map { "${it.propertyPath.last()} ${it.message}" })
@@ -79,15 +78,15 @@ return Response
 
 ##### Java
 
-```kotlin
+```java
 @Override
 public String generateName(int length) {
     StringBuilder sb = new StringBuilder(length);
 
     for (int i = 0; i < length; i++) {
-    var index = (int)(characters.length() * Math.random());
-    sb.append(characters.charAt(index));
-}
+        var index = (int)(characters.length() * Math.random());
+        sb.append(characters.charAt(index));
+    }
 
     return sb.toString();
 }
@@ -122,7 +121,6 @@ data class UserDto(
 #### Java Data Class with Lombok
 
 ```java
-
 @Data
 @AllArgsConstructor
 public class UserDto {
@@ -175,7 +173,6 @@ public class ExceptionUtils {
         return null;
     }
 }
-
 ```
 
 ##### Kotlin
@@ -214,9 +211,9 @@ public class TransactionUtils {
     }
 }
 
-    executeForResult(transaction, () ->{
-        //code    
-        });
+executeForResult(transaction, () -> {
+    //code    
+});
 ```
 
 ##### Kotlin
@@ -332,8 +329,8 @@ em.createQuery(
 }
 ```
 
-JPA also lacks support for Kotlin nullable types. When a query has no matching result it throws an exception when
-accessing the `singleResult` property. This desired behaviour can be achieved with a simple extension function seen below.
+JPA also lacks support for Kotlin nullable types. When a query has no result it throws an exception when
+accessing the `singleResult` property, instead of returning `null`. This desired behaviour can be achieved with a simple extension function seen below.
 
 ```kotlin
 fun <T> TypedQuery<T>.singleResult(): T? = this.resultList.firstOrNull()
