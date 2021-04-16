@@ -5,6 +5,16 @@ import java.sql.SQLException
 import javax.transaction.UserTransaction
 import javax.validation.ConstraintViolationException
 
+inline fun <T> UserTransaction.execute(block: () -> T): T = try {
+    begin()
+    val res = block()
+    commit()
+    res
+} catch (ex: RuntimeException) {
+    rollback()
+    throw  ex
+}
+
 fun <T> UserTransaction.withUniqueConstraintHandling(
     constraintName: String,
     message: String,
@@ -13,10 +23,10 @@ fun <T> UserTransaction.withUniqueConstraintHandling(
     execute(block)
 } catch (ex: Exception) {
 
-    ex.getException<ConstraintViolationException>()?.let {
+    ex.findException<ConstraintViolationException>()?.let {
         throw it
     }
-    val sqlException = ex.getException<SQLException>()
+    val sqlException = ex.findException<SQLException>()
     if (sqlException != null && sqlException.message?.contains(constraintName, ignoreCase = true) == true)
         throw EntityModificationException(message)
 

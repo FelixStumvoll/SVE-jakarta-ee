@@ -25,7 +25,7 @@ public class LoginController {
     @ConfigProperty(name = "mp.jwt.verify.issuer")
     String issuer;
     @ConfigProperty(name = "urlshortener.login.jwtlifespan")
-    Long jwtLifespan;
+    long jwtLifespan;
 
     @Inject
     public LoginController(UserService userService) {

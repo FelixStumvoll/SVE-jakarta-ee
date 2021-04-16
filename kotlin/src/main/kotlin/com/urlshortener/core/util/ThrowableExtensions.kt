@@ -1,6 +1,6 @@
 package com.urlshortener.core.util
 
-inline fun <reified T : Throwable> Throwable.getException(): T? {
+inline fun <reified T : Throwable> Throwable.findException(): T? {
     var exFind = this.cause
 
     while (exFind != null) {
